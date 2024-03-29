@@ -1,0 +1,43 @@
+{
+  "name": "circuits-example",
+  "version": "0.1.0",
+  "description": "Circuits examples",
+  "scripts": {
+    "compile": "circom ./src/multiplier.circom --r1cs --wasm --sym --c -o ./build && make --directory=./build/multiplier_cpp",
+    "witness": "./build/multiplier_cpp/multiplier ./config/input.json ./build/witness.wtns",
+    "tau": "pnpm run tau-init && pnpm run tau-contribute",
+    "phase2": "pnpm run phase2-init && pnpm run generate-zkey && pnpm run contribute-phase2 && pnpm run export-zkey",
+    "tau-init": "snarkjs powersoftau new bn128 12 ./build/pot12_0000.ptau -v",
+    "tau-contribute": "snarkjs powersoftau contribute ./build/pot12_0000.ptau ./build/pot12_0001.ptau --name=\"contribution\" -v",
+    "phase2-init": "snarkjs powersoftau prepare phase2 ./build/pot12_0001.ptau ./build/pot12_final.ptau -v",
+    "generate-zkey": "snarkjs groth16 setup ./build/multiplier.r1cs ./build/pot12_final.ptau ./build/multiplier_0000.zkey",
+    "contribute-phase2": "snarkjs zkey contribute ./build/multiplier_0000.zkey ./build/multiplier_0001.zkey --name=\"contributor\" -v",
+    "export-zkey": "snarkjs zkey export verificationkey ./build/multiplier_0001.zkey ./build/verification_key.json",
+    "export-verifier": "snarkjs zkey export solidityverifier ./build/multiplier_0001.zkey ./src/verifier.sol",
+    "generate-proof": "snarkjs groth16 prove ./build/multiplier_0001.zkey ./build/witness.wtns ./build/proof.json ./build/public.json",
+    "verify-proof": "snarkjs groth16 verify ./build/verification_key.json ./build/public.json ./build/proof.json",
+    "generate-call": "snarkjs generatecall ./build/public.json ./build/proof.json",
+    "test": "jest",
+    "prettier": "prettier -c .",
+    "prettier:fix": "prettier -w ."
+  },
+  "keywords": [],
+  "author": "0xmad",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.30",
+    "@zk-kit/poseidon-cipher": "^0.3.0",
+    "fast-check": "^3.17.0",
+    "prettier": "^3.2.5",
+    "ts-jest": "^29.1.2"
+  },
+  "dependencies": {
+    "@zk-kit/eddsa-poseidon": "^0.11.0",
+    "@zk-kit/imt": "2.0.0-beta.4",
+    "circomkit": "^0.0.24",
+    "circomlib": "^2.0.5",
+    "jest": "^29.7.0",
+    "snarkjs": "^0.7.3"
+  }
+}
